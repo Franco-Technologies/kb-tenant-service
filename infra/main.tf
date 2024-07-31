@@ -9,7 +9,7 @@ module "ecs" {
   env               = local.env
   vpc_id            = local.app_vars_decoded.vpc_id
   cluster_arn       = local.app_vars_decoded.ecs_cluster_arn
-  subnet_ids        = local.app_vars_decoded.private_subnet_ids
+  subnet_ids        = jsondecode(local.app_vars_decoded.private_subnet_ids)
   container_image   = "nginx:latest"
   security_group_id = local.app_vars_decoded.default_security_group_id
   listener_arn      = local.app_vars_decoded.listener_arn
