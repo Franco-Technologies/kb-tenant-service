@@ -18,6 +18,7 @@ variable "dest_account_number" { type = string }
 # variable "ci_commit_branch" {type = string}
 variable "is_prod_branch" { type = bool }
 variable "app_name" { type = string }
+variable "app_vars" { type = string }
 # variable "additional_inputs" {type = any}
 
 # # Required ecs fargate variables
