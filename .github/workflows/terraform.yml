@@ -22,7 +22,17 @@ permissions:
   packages: write
 
 jobs:
-  Terraform-base:
+  ECR-Push:
+    uses: Franco-Technologies/workflows/.github/workflows/docker-workflow-cloud.yml@main
+    with:
+      app_name: "knowledgebase" # Required
+      accepted_trivy_level: "High"
+      lambda_container_deploy: true
+      lambda_container_source: "./src/api"
+      image_name: "tenant-management"
+
+  Terraform:
+    needs: ECR-Push
     uses: Franco-Technologies/workflows/.github/workflows/aws-terraform.yaml@main
     with:
       # Required inputs, can be changed
