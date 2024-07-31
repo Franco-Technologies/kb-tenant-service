@@ -41,5 +41,6 @@ jobs:
       tf_dir: "./infra"
       tf_destroy: false # very dangerous, don't need it for this project so will leave it out!
       app_name: "knowledgebase"
+
     secrets:
       PAT: ${{ secrets.PAT }}
