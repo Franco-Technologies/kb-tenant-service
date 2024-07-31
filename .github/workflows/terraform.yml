@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  #   Trigger the workflow on push or pull request, excluding changes to the workflow file itself.
+  push:
+    branches: ["main", "dev"]
+    paths-ignore:
+      # - ".github/workflows/**"
+      - "README.md"
+      - ".gitignore"
+      - "docs/**"
+      - ".github/**"
+  pull_request:
+    branches: ["main", "dev"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+  security-events: write
+  packages: write
+
+jobs:
+  Terraform-base:
+    uses: Franco-Technologies/workflows/.github/workflows/aws-terraform.yaml@main
+    with:
+      # Required inputs, can be changed
+      tf_log: "INFO"
+      tf_action: "destroy"
+      tf_dir: "./base_infra"
+      tf_destroy: false # very dangerous, don't need it for this project so will leave it out!
+      app_name: "knowledgebase"
+    secrets:
+      PAT: ${{ secrets.PAT }}
+
+  ECR-Push:
+    needs: Terraform-base
+    uses: Franco-Technologies/workflows/.github/workflows/docker-workflow-cloud.yml@main
+    with:
+      app_name: "appontifyapi" # Required
+      accepted_trivy_level: "High"
+      lambda_container_deploy: true
+      lambda_container_source: "./src/appontify_api"
+
+  Terraform-infra:
+    needs: [Terraform-base, ECR-Push]
+    uses: Franco-Technologies/workflows/.github/workflows/aws-terraform.yaml@main
+    with:
+      # Required inputs, can be changed
+      tf_log: "INFO"
+      tf_action: "destroy"
+      tf_dir: "./infra"
+      tf_destroy: false # very dangerous, don't need it for this project so will leave it out!
+      app_name: "appontifyapi"
+      tf_additional_inputs: ${{ needs.Terraform-base.outputs.tf_output || '{}' }}
+    secrets:
+      PAT: ${{ secrets.PAT }}
