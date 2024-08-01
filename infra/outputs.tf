@@ -1,7 +1,7 @@
-output "ecs_service_url" {
-  description = "ECS service URL"
-  value       = module.ecs.service_url
-}
+# output "ecs_service_url" {
+#   description = "ECS service URL"
+#   value       = module.ecs.service_url
+# }
 
 # output "api_gateway_deployment_id" {
 #   description = "API Gateway Deployment ID"
