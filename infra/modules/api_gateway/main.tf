@@ -26,7 +26,7 @@ resource "aws_api_gateway_integration" "integration" {
   http_method             = "ANY"
   type                    = "HTTP_PROXY"
   integration_http_method = "ANY"
-  uri                     = "http://${var.load_balancer_url}/tenant-management"
+  uri                     = var.load_balancer_url
   connection_type         = "VPC_LINK"
   connection_id           = aws_apigatewayv2_vpc_link.this.id
 }
