@@ -18,8 +18,8 @@ variable "exec_role_arn" {
   type        = string
 }
 
-variable "security_group_id" {
-  description = "Security group ID for ECS tasks"
+variable "load_balancer_sg_id" {
+  description = "Security group ID for the load balancer"
   type        = string
 }
 

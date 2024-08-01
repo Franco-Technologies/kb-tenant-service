@@ -31,6 +31,27 @@ resource "aws_cloudwatch_log_group" "app" {
   name = "/ecs/tenant-management"
 }
 
+resource "aws_security_group" "app" {
+  name        = "${var.env}-tenant-management-sg"
+  description = "Security group for the tenant management service"
+  vpc_id      = var.vpc_id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow traffic from the load balancer
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = [" ${var.load_balancer_sg_id}"]
+  }
+}
+
 resource "aws_ecs_service" "app" {
   name                 = "${var.env}-tenant-management-service"
   cluster              = var.cluster_arn
@@ -41,7 +62,7 @@ resource "aws_ecs_service" "app" {
 
   network_configuration {
     subnets          = var.subnet_ids
-    security_groups  = [var.security_group_id]
+    security_groups  = [aws_security_group.app.id]
     assign_public_ip = false
   }
 
