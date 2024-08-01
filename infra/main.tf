@@ -17,7 +17,6 @@ module "ecs" {
   exec_role_arn     = local.app_vars_decoded.ecs_task_execution_role_arn
 }
 
-
 # module "api_gateway" {
 #   source = "./modules/api_gateway"
 #   # Environment-specific variables
