@@ -12,10 +12,12 @@ resource "aws_api_gateway_method" "this" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_vpc_link" "this" {
-  name        = var.vpc_link_name
-  target_arns = [var.load_balancer_url]
-  tags        = var.tags
+resource "aws_apigatewayv2_vpc_link" "this" {
+  name               = var.vpc_link_name
+  security_group_ids = [var.security_group_id]
+  subnet_ids         = var.subnet_ids
+
+  tags = var.tags
 }
 
 resource "aws_api_gateway_integration" "integration" {

@@ -1,3 +1,13 @@
+variable "security_group_id" {
+  description = "Security group ID for ECS tasks"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "Subnet IDs for ECS tasks"
+  type        = list(string)
+}
+
 variable "stage_name" {
   description = "The stage name for the deployment"
   type        = string
