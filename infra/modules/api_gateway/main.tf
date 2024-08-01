@@ -28,7 +28,7 @@ resource "aws_api_gateway_integration" "integration" {
   integration_http_method = "ANY"
   uri                     = var.load_balancer_url
   connection_type         = "VPC_LINK"
-  connection_id           = aws_api_gateway_vpc_link.this.id
+  connection_id           = aws_apigatewayv2_vpc_link.this.id
 }
 
 resource "aws_api_gateway_deployment" "this" {
