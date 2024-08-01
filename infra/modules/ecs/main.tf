@@ -35,7 +35,7 @@ resource "aws_ecs_service" "app" {
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
     container_name   = "tenant-management-container"
-    container_port   = 80
+    container_port   = 3000
   }
 }
 
