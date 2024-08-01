@@ -22,7 +22,7 @@ module "api_gateway" {
   subnet_ids        = jsondecode(local.app_vars_decoded.private_subnet_ids)
   stage_name        = local.env
   vpc_link_name     = "ecs-vpc-link"
-  load_balancer_url = local.app_vars_decoded.load_balancer_arn
+  load_balancer_url = local.app_vars_decoded.load_balancer_dns_name
   rest_api_id       = local.app_vars_decoded.api_gateway_rest_api_id
   root_resource_id  = local.app_vars_decoded.api_gateway_root_resource_id
   tags = {
