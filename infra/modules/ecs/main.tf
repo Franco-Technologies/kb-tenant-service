@@ -41,7 +41,7 @@ resource "aws_ecs_service" "app" {
 
 resource "aws_lb_target_group" "app" {
   name        = "${var.env}-tenant-management-tg"
-  port        = 80
+  port        = 3000
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
