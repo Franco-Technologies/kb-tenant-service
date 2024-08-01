@@ -8,6 +8,11 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "exec_role_arn" {
+  description = "ARN of the ECS task execution role"
+  type        = string
+}
+
 variable "security_group_id" {
   description = "Security group ID for ECS tasks"
   type        = string

@@ -5,6 +5,7 @@ resource "aws_ecs_task_definition" "app" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.task_cpu
   memory                   = var.task_memory
+  execution_role_arn       = var.exec_role_arn
 
   container_definitions = jsonencode([
     {
