@@ -8,6 +8,11 @@ variable "vpc_id" {
   type        = string
 }
 
+variable "region" {
+  description = "AWS region"
+  type        = string
+}
+
 variable "exec_role_arn" {
   description = "ARN of the ECS task execution role"
   type        = string

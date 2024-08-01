@@ -17,6 +17,14 @@ resource "aws_ecs_task_definition" "app" {
           hostPort      = 3000
         }
       ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/tenant-management"
+          "awslogs-region"        = var.region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
     }
   ])
 }
