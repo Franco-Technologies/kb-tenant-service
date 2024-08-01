@@ -45,11 +45,12 @@ resource "aws_security_group" "app" {
 
   # Allow traffic from the load balancer
   ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = [" ${var.load_balancer_sg_id}"]
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    security_groups = [var.load_balancer_sg_id]
   }
+
 }
 
 resource "aws_ecs_service" "app" {
