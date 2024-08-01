@@ -16,18 +16,18 @@ module "ecs" {
   exec_role_arn     = local.app_vars_decoded.ecs_task_execution_role_arn
 }
 
-module "api_gateway" {
-  source = "./modules/api_gateway"
-  # Environment-specific variables
-  security_group_id = local.app_vars_decoded.default_security_group_id
-  subnet_ids        = jsondecode(local.app_vars_decoded.private_subnet_ids)
-  stage_name        = local.env
-  vpc_link_name     = "ecs-vpc-link"
-  load_balancer_url = local.app_vars_decoded.load_balancer_dns_name
-  rest_api_id       = local.app_vars_decoded.api_gateway_rest_api_id
-  root_resource_id  = local.app_vars_decoded.api_gateway_root_resource_id
-  tags = {
-    Environment = "dev"
-    Project     = "example"
-  }
-}
+# module "api_gateway" {
+#   source = "./modules/api_gateway"
+#   # Environment-specific variables
+#   security_group_id = local.app_vars_decoded.default_security_group_id
+#   subnet_ids        = jsondecode(local.app_vars_decoded.private_subnet_ids)
+#   stage_name        = local.env
+#   vpc_link_name     = "ecs-vpc-link"
+#   load_balancer_url = local.app_vars_decoded.load_balancer_dns_name
+#   rest_api_id       = local.app_vars_decoded.api_gateway_rest_api_id
+#   root_resource_id  = local.app_vars_decoded.api_gateway_root_resource_id
+#   tags = {
+#     Environment = "dev"
+#     Project     = "example"
+#   }
+# }
