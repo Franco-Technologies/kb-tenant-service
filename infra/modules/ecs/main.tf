@@ -29,6 +29,10 @@ resource "aws_ecs_task_definition" "app" {
   ])
 }
 
+resource "aws_cloudwatch_log_group" "app" {
+  name = "/ecs/tenant-management"
+}
+
 resource "aws_ecs_service" "app" {
   name            = "${var.env}-tenant-management-service"
   cluster         = var.cluster_arn
