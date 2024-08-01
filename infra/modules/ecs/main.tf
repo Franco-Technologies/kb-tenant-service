@@ -47,18 +47,18 @@ resource "aws_lb_target_group" "app" {
   target_type = "ip"
 }
 
-# resource "aws_lb_listener_rule" "app" {
-#   listener_arn = var.listener_arn
-#   priority     = 100
+resource "aws_lb_listener_rule" "app" {
+  listener_arn = var.listener_arn
+  priority     = 100
 
-#   action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.app.arn
-#   }
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
 
-#   condition {
-#     path_pattern {
-#       values = ["/tenant-management/*"]
-#     }
-#   }
-# }
+  condition {
+    path_pattern {
+      values = ["/tenant-management/*"]
+    }
+  }
+}
