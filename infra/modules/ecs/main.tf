@@ -1,4 +1,3 @@
-
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.env}-tenant-management-task"
   network_mode             = "awsvpc"
@@ -6,7 +5,6 @@ resource "aws_ecs_task_definition" "app" {
   cpu                      = var.task_cpu
   memory                   = var.task_memory
   execution_role_arn       = var.exec_role_arn
-
   container_definitions = jsonencode([
     {
       name  = "tenant-management-container"
@@ -34,16 +32,17 @@ resource "aws_cloudwatch_log_group" "app" {
 }
 
 resource "aws_ecs_service" "app" {
-  name            = "${var.env}-tenant-management-service"
-  cluster         = var.cluster_arn
-  task_definition = aws_ecs_task_definition.app.arn
-  launch_type     = "FARGATE"
-  desired_count   = var.service_desired_count
+  name                 = "${var.env}-tenant-management-service"
+  cluster              = var.cluster_arn
+  task_definition      = aws_ecs_task_definition.app.arn
+  launch_type          = "FARGATE"
+  desired_count        = var.service_desired_count
+  force_new_deployment = var.force_new_deployment
 
   network_configuration {
     subnets          = var.subnet_ids
     security_groups  = [var.security_group_id]
-    assign_public_ip = true
+    assign_public_ip = false
   }
 
   load_balancer {
