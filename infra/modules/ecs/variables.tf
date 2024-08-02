@@ -64,5 +64,5 @@ variable "service_desired_count" {
 variable "force_new_deployment" {
   description = "Force a new deployment of the task definition"
   type        = bool
-  default     = false
+  default     = true
 }
