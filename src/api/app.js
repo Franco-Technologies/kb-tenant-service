@@ -64,6 +64,10 @@ const getJwks = async (issuer) => {
 
 // Middleware to verify token and get AWS credentials
 app.use(async (req, res, next) => {
+  if (req.url === "/health") {
+    return next();
+  }
+
   const token = req.headers.authorization;
   if (!token) {
     return res.status(401).send("Unauthorized");
@@ -131,6 +135,11 @@ app.get("/", (req, res) => {
 app.get("/api", (req, res) => {
   console.log("API");
   res.json({ message: "Hello from API", credentials: req.awsCredentials });
+});
+
+app.get("/health", (req, res) => {
+  console.log("Health check");
+  res.send("OK");
 });
 
 app.listen(port, () => {
