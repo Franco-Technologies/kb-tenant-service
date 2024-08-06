@@ -1,8 +1,9 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const jwkToPem = require("jwk-to-pem");
-const fetch = require("node-fetch");
-const AWS = require("aws-sdk");
+import express from "express";
+import AWS from "aws-sdk";
+import jwt from "jsonwebtoken";
+import jwkToPem from "jwk-to-pem";
+import fetch from "node-fetch";
+
 const app = express();
 const port = 3000;
 
