@@ -13,6 +13,18 @@ variable "region" {
   type        = string
 }
 
+variable "cognito_identity_pool_id" {
+  description = "Cognito identity pool ID"
+  type        = string
+  default     = "us-east-2:d0190f2f-858b-423a-a8f7-5b27126e58e8"
+}
+
+variable "cognito_user_pool_id" {
+  description = "Cognito user pool ID"
+  type        = string
+  default     = "us-east-2_vXgSMyGNJ"
+}
+
 variable "exec_role_arn" {
   description = "ARN of the ECS task execution role"
   type        = string

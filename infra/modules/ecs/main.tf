@@ -15,6 +15,20 @@ resource "aws_ecs_task_definition" "app" {
           hostPort      = 3000
         }
       ]
+      environment = [
+        {
+          name  = "AWS_REGION"
+          value = var.region
+        },
+        {
+          name  = "COGNITO_IDENTITY_POOL_ID"
+          value = var.cognito_identity_pool_id
+        },
+        {
+          name  = "COGNITO_USER_POOL_ID"
+          value = var.cognito_user_pool_id
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
