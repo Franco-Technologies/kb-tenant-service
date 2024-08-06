@@ -1,3 +1,38 @@
+# task role
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.env}-ecs-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  inline_policy {
+    name = "cognito-getpools"
+    policy = jsonencode({
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Effect = "Allow"
+          Action = [
+            "cognito-identity:GetId",
+            "cognito-identity:ListIdentityPools",
+          ]
+          Resource = "*"
+        },
+      ]
+    })
+  }
+}
+
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.env}-tenant-management-task"
   network_mode             = "awsvpc"
@@ -5,6 +40,7 @@ resource "aws_ecs_task_definition" "app" {
   cpu                      = var.task_cpu
   memory                   = var.task_memory
   execution_role_arn       = var.exec_role_arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([
     {
       name  = "tenant-management-container"
