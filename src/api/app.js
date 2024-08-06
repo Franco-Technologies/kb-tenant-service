@@ -13,7 +13,9 @@ let cache = { user_pools: null, timestamp: 0 };
 
 // Middleware to log every request
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  console.log(
+    `[${new Date().toISOString()}] - ${req.method} ${req.originalUrl}`
+  );
   next();
 });
 
@@ -53,12 +55,18 @@ const getUserPools = async () => {
   cache.user_pools = userPoolUrls;
   cache.timestamp = currentTime;
 
+  console.log(`Fetched and cached ${userPoolUrls.length} user pools`);
   return userPoolUrls;
 };
 
 // Function to fetch JWKS for a given issuer
 const getJwks = async (issuer) => {
+  console.log(`Fetching JWKS for issuer: ${issuer}`);
   const response = await fetch(`${issuer}/.well-known/jwks.json`);
+  if (!response.ok) {
+    console.error(`Failed to fetch JWKS: ${response.statusText}`);
+    throw new Error("Failed to fetch JWKS");
+  }
   return await response.json();
 };
 
@@ -70,6 +78,7 @@ app.use(async (req, res, next) => {
 
   const token = req.headers.authorization;
   if (!token) {
+    console.warn("No authorization token found");
     return res.status(401).send("Unauthorized");
   }
 
@@ -79,19 +88,21 @@ app.use(async (req, res, next) => {
     const issuer = decodedToken.payload.iss;
 
     if (!trustedIssuers.includes(issuer)) {
-      console.log("Issuer not trusted");
+      console.warn(`Issuer not trusted: ${issuer}`);
       return res.status(401).send("Unauthorized");
     }
 
     const jwks = await getJwks(issuer);
     const jwk = jwks.keys.find((key) => key.kid === decodedToken.header.kid);
     if (!jwk) {
-      console.log("JWK not found");
+      console.warn("JWK not found");
       return res.status(401).send("Unauthorized");
     }
 
     const pem = jwkToPem(jwk);
     jwt.verify(token, pem, { algorithms: ["RS256"], issuer: issuer });
+
+    console.log("Token successfully verified");
 
     const cognitoIdentity = new AWS.CognitoIdentity({
       region: process.env.AWS_REGION,
@@ -120,6 +131,8 @@ app.use(async (req, res, next) => {
       .promise();
     req.awsCredentials = credentials.Credentials;
 
+    console.log("AWS credentials successfully retrieved");
+
     next();
   } catch (error) {
     console.error("Error verifying token or getting credentials", error);
@@ -133,12 +146,12 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api", (req, res) => {
-  console.log("API");
+  console.log("API endpoint accessed");
   res.json({ message: "Hello from API", credentials: req.awsCredentials });
 });
 
 app.get("/health", (req, res) => {
-  console.log("Health check");
+  console.log("Health check endpoint accessed");
   res.send("OK");
 });
 
