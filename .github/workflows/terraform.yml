@@ -37,10 +37,10 @@ jobs:
     with:
       # Required inputs, can be changed
       tf_log: "INFO"
-      tf_action: "destroy"
+      tf_action: "apply"
       tf_dir: "./infra"
       tf_destroy: false # very dangerous, don't need it for this project so will leave it out!
-      app_name: "knowledgebase"
+      app_name: "knowledgebase-cpservice"
 
     secrets:
       PAT: ${{ secrets.PAT }}
