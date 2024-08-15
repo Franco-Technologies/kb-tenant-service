@@ -109,7 +109,7 @@ const getJwks = async (issuer) => {
 };
 
 // Middleware to verify token and get AWS credentials
-identityPoolIdapp.use(async (req, res, next) => {
+app.use(async (req, res, next) => {
   if (req.url === "/health") {
     return next();
   }
