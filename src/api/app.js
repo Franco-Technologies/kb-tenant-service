@@ -1,8 +1,26 @@
 import express from "express";
-import AWS from "aws-sdk";
+import {
+  CognitoIdentityProviderClient,
+  ListUserPoolsCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
+import {
+  CognitoIdentityClient,
+  GetIdCommand,
+  GetCredentialsForIdentityCommand,
+} from "@aws-sdk/client-cognito-identity";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient, ListTablesCommand } from "@aws-sdk/client-dynamodb";
+import { STSClient, GetCallerIdentityCommand } from "@aws-sdk/client-sts";
 import jwt from "jsonwebtoken";
 import jwkToPem from "jwk-to-pem";
 import fetch from "node-fetch";
+
+console.log("Starting API server");
+
+// Initialize AWS SDK clients
+const dynamoDBClient = new DynamoDBClient({ region: process.env.AWS_REGION });
+const ddbDocClient = DynamoDBDocumentClient.from(dynamoDBClient);
 
 const app = express();
 const port = 3000;
@@ -27,6 +45,20 @@ app.use((req, res, next) => {
   next();
 });
 
+// Function to fetch tenant configuration from DynamoDB
+const getTenantConfig = async (tenantId) => {
+  const params = {
+    TableName: process.env.TENANT_TABLE_NAME,
+    Key: { TenantId: tenantId },
+  };
+
+  const data = await ddbDocClient.send(new GetCommand(params));
+  if (!data.Item) {
+    throw new Error("Tenant configuration not found");
+  }
+  return data.Item;
+};
+
 // Function to fetch user pools from AWS Cognito
 const getUserPools = async () => {
   const currentTime = Date.now() / 1000; // Current time in seconds
@@ -36,15 +68,22 @@ const getUserPools = async () => {
   }
 
   console.log("Fetching user pools from Cognito");
-  const cognitoISP = new AWS.CognitoIdentityServiceProvider();
+  const cognitoISPClient = new CognitoIdentityProviderClient({
+    region: process.env.AWS_REGION,
+  });
   let userPools = [];
-  let response = await cognitoISP.listUserPools({ MaxResults: 60 }).promise();
+  let response = await cognitoISPClient.send(
+    new ListUserPoolsCommand({ MaxResults: 60 })
+  );
   userPools = userPools.concat(response.UserPools);
 
   while (response.NextToken) {
-    response = await cognitoISP
-      .listUserPools({ NextToken: response.NextToken, MaxResults: 60 })
-      .promise();
+    response = await cognitoISPClient.send(
+      new ListUserPoolsCommand({
+        NextToken: response.NextToken,
+        MaxResults: 60,
+      })
+    );
     userPools = userPools.concat(response.UserPools);
   }
 
@@ -71,16 +110,25 @@ const getJwks = async (issuer) => {
 };
 
 // Middleware to verify token and get AWS credentials
-app.use(async (req, res, next) => {
+identityPoolIdapp.use(async (req, res, next) => {
   if (req.url === "/health") {
     return next();
   }
 
-  const token = req.headers.authorization;
+  const bearerToken = req.headers["id-token"];
+  const token = bearerToken ? bearerToken.split(" ")[1] : null;
+  console.log(`ID token: ${token}`);
   if (!token) {
-    console.warn("No authorization token found");
+    console.warn("No ID token found");
     return res.status(401).send("Unauthorized");
   }
+
+  const tenantId = decodedToken.payload.tenantId; // Assuming tenantId is part of the JWT payload
+
+  // Fetch tenant configuration from DynamoDB
+  const tenantConfig = await getTenantConfig(tenantId);
+  const userPoolId = tenantConfig.UserPoolId;
+  const identityPoolId = tenantConfig.IdentityPoolId;
 
   try {
     const trustedIssuers = await getUserPools();
@@ -104,31 +152,28 @@ app.use(async (req, res, next) => {
 
     console.log("Token successfully verified");
 
-    const cognitoIdentity = new AWS.CognitoIdentity({
+    const cognitoIdentityClient = new CognitoIdentityClient({
       region: process.env.AWS_REGION,
     });
 
-    const ci = await cognitoIdentity
-      .getId({
-        IdentityPoolId: process.env.COGNITO_IDENTITY_POOL_ID,
+    const getIdCommand = new GetIdCommand({
+      IdentityPoolId: identityPoolId,
+    });
+
+    const ci = await cognitoIdentityClient.send(getIdCommand);
+
+    const getCredentialsForIdentityCommand =
+      new GetCredentialsForIdentityCommand({
+        IdentityId: ci.IdentityId,
         Logins: {
-          [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`]:
+          [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${userPoolId}`]:
             token,
         },
-      })
-      .promise();
+      });
 
-    const params = {
-      IdentityId: ci.IdentityId,
-      Logins: {
-        [`cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.COGNITO_USER_POOL_ID}`]:
-          token,
-      },
-    };
-
-    const credentials = await cognitoIdentity
-      .getCredentialsForIdentity(params)
-      .promise();
+    const credentials = await cognitoIdentityClient.send(
+      getCredentialsForIdentityCommand
+    );
     req.awsCredentials = credentials.Credentials;
 
     console.log("AWS credentials successfully retrieved");
@@ -147,7 +192,34 @@ app.get("/", (req, res) => {
 
 app.get("/api", (req, res) => {
   console.log("API endpoint accessed");
-  res.json({ message: "Hello from API", credentials: req.awsCredentials });
+  // res.json({ message: "Hello from API", credentials: req.awsCredentials });
+  // sts and getCallerIdentity with credentials
+  const stsClient = new STSClient({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: req.awsCredentials.AccessKeyId,
+      secretAccessKey: req.awsCredentials.SecretKey,
+      sessionToken: req.awsCredentials.SessionToken,
+    },
+  });
+  const getCallerIdentityCommand = new GetCallerIdentityCommand({});
+  stsClient.send(getCallerIdentityCommand).then((data) => {
+    console.log("GetCallerIdentityCommand", data.Arn);
+  });
+  // list dynamodb tables
+  const dynamoDBClient = new DynamoDBClient({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: req.awsCredentials.AccessKeyId,
+      secretAccessKey: req.awsCredentials.SecretKey,
+      sessionToken: req.awsCredentials.SessionToken,
+    },
+  });
+  const listTablesCommand = new ListTablesCommand({});
+  dynamoDBClient.send(listTablesCommand).then((data) => {
+    console.log("ListTablesCommand", data.TableNames);
+  });
+  res.send("API endpoint accessed");
 });
 
 app.get("/health", (req, res) => {
