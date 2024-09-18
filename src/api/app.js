@@ -122,16 +122,15 @@ app.use(async (req, res, next) => {
     return res.status(401).send("Unauthorized");
   }
 
-  const tenantId = decodedToken.payload.tenantId; // Assuming tenantId is part of the JWT payload
-
-  // Fetch tenant configuration from DynamoDB
-  const tenantConfig = await getTenantConfig(tenantId);
-  const userPoolId = tenantConfig.UserPoolId;
-  const identityPoolId = tenantConfig.IdentityPoolId;
-
   try {
     const trustedIssuers = await getUserPools();
     const decodedToken = jwt.decode(token, { complete: true });
+    const tenantId = decodedToken.payload.tenantId; // Assuming tenantId is part of the JWT payload
+
+    // Fetch tenant configuration from DynamoDB
+    const tenantConfig = await getTenantConfig(tenantId);
+    const userPoolId = tenantConfig.UserPoolId;
+    const identityPoolId = tenantConfig.IdentityPoolId;
     const issuer = decodedToken.payload.iss;
 
     if (!trustedIssuers.includes(issuer)) {
