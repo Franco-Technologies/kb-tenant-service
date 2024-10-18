@@ -37,7 +37,7 @@ jobs:
     with:
       # Required inputs, can be changed
       tf_log: "INFO"
-      tf_action: "apply"
+      tf_action: "destroy"
       tf_dir: "./infra"
       tf_destroy: false # very dangerous, don't need it for this project so will leave it out!
       app_name: "knowledgebase-infra-cpservice"
