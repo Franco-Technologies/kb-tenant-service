@@ -1,0 +1,24 @@
+# docker compose for api
+version: "1.0"
+secrets:
+  aws_creds:
+    file: ~/.aws
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    secrets:
+      - source: aws_creds
+        target: /root/.aws
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      - AWS_REGION=us-east-2
+      - AWS_PROFILE=franco-tech-dev-admin
+      - NODE_ENV=development
+      - PORT=3000
+      - TENANT_TABLE_NAME=Appointify-Tenant-Dev
